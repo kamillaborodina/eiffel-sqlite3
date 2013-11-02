@@ -17,6 +17,8 @@ feature -- Status report
 			--
 			-- `a_value': A value to check.
 			-- `Result': True if the value type is marshallable; False otherwise.
+		local
+			l_type_id: INTEGER
 		do
 			Result := not attached a_value or else
 				attached {READABLE_STRING_8} a_value or else
@@ -26,17 +28,16 @@ feature -- Status report
 			if not Result and attached a_value then
 					-- Check scalar types
 				Result := True
-				inspect internal.dynamic_type (a_value)
-				when
-					{INTERNAL}.integer_8_type,
-					{INTERNAL}.integer_16_type,
-					{INTERNAL}.integer_32_type,
-					{INTERNAL}.integer_64_type,
-					{INTERNAL}.natural_8_type,
-					{INTERNAL}.natural_16_type,
-					{INTERNAL}.natural_32_type,
-					{INTERNAL}.real_32_type,
-					{INTERNAL}.real_64_type
+				l_type_id := internal.dynamic_type (a_value)
+				if 	l_type_id = ({INTEGER_8}).type_id or else
+					l_type_id = ({INTEGER_16}).type_id or else
+					l_type_id = ({INTEGER_32}).type_id or else
+					l_type_id = ({INTEGER_64}).type_id or else
+					l_type_id = ({NATURAL_8}).type_id or else
+					l_type_id = ({NATURAL_16}).type_id or else
+					l_type_id = ({NATURAL_32}).type_id or else
+					l_type_id = ({REAL_32}).type_id or else
+					l_type_id = ({REAL_64}).type_id
 				then
 						-- Supported basic type
 					check Result end
