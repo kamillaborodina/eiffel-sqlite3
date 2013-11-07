@@ -8,8 +8,8 @@ note
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2011-10-28 18:43:25 +0200 (Fre, 28 Okt 2011) $"
-	revision: "$Revision: 87659 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
 	SQLITE_RESULT_ROW
@@ -168,9 +168,9 @@ feature -- Query
 				if l_type = {SQLITE_TYPE}.blob then
 					Result := blob_value (a_column)
 				elseif l_type = {SQLITE_TYPE}.float then
-					create {CELL [REAL_64]}Result.put (real_64_value (a_column))
+					create {CELL [REAL_64]} Result.put (real_64_value (a_column))
 				elseif l_type = {SQLITE_TYPE}.integer then
-					create {CELL [INTEGER_64]}Result.put (integer_64_value (a_column))
+					create {CELL [INTEGER_64]} Result.put (integer_64_value (a_column))
 				elseif l_type = {SQLITE_TYPE}.text then
 					Result := string_value (a_column)
 				else

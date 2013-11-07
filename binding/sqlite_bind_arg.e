@@ -4,8 +4,8 @@ note
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2010-03-22 19:42:30 +0100 (Mon, 22 Mär 2010) $"
-	revision: "$Revision: 82641 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 deferred class
 	SQLITE_BIND_ARG [G -> ANY]

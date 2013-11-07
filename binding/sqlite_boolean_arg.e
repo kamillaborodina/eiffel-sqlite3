@@ -1,17 +1,17 @@
 note
 	description: "[
-		An real binding argument value for use with executing a SQLite statement.
+		An boolean binding argument value for use with executing a SQLite statement.
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2009-10-08 02:26:41 +0200 (Don, 08 Okt 2009) $"
-	revision: "$Revision: 81049 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
-	SQLITE_DOUBLE_ARG
+	SQLITE_BOOLEAN_ARG
 
 inherit
-	SQLITE_BIND_ARG [REAL_64]
+	SQLITE_BIND_ARG [BOOLEAN]
 
 create
 	make
@@ -20,13 +20,20 @@ feature {SQLITE_STATEMENT} -- Basic operations
 
 	bind_to_statement (a_statement: SQLITE_STATEMENT; a_index: INTEGER)
 			-- <Precursor>
+		local
+			l_result: INTEGER
 		do
-			sqlite_raise_on_failure ({SQLITE_EXTERNALS}.c_sqlite3_bind_double (a_statement.internal_stmt, a_index, value))
+			if value then
+				l_result := {SQLITE_EXTERNALS}.c_sqlite3_bind_int (a_statement.internal_stmt, a_index, 1)
+			else
+				l_result := {SQLITE_EXTERNALS}.c_sqlite3_bind_int (a_statement.internal_stmt, a_index, 0)
+			end
+			sqlite_raise_on_failure (l_result)
 		end
 
 feature {NONE} -- Implemention: Internal cache
 
-	internal_value: REAL_64
+	internal_value: BOOLEAN
 			-- Cached version of `value'.
 
 ;note

@@ -4,8 +4,8 @@ note
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2010-05-25 19:31:24 +0200 (Die, 25 Mai 2010) $"
-	revision: "$Revision: 83307 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
 	SQLITE_BINDING_HELPERS
@@ -23,54 +23,63 @@ feature -- Status report
 			Result := not attached a_value or else
 				attached {READABLE_STRING_8} a_value or else
 				attached {SQLITE_BIND_ARG [ANY]} a_value or else
-				attached {MANAGED_POINTER} a_value
-
+				attached {MANAGED_POINTER} a_value or else
+				(attached {READABLE_STRING_32} a_value as s32 and then s32.is_valid_as_string_8)
 			if not Result and attached a_value then
 					-- Check scalar types
 				Result := True
-				l_type_id := internal.dynamic_type (a_value)
-				if 	l_type_id = ({INTEGER_8}).type_id or else
-					l_type_id = ({INTEGER_16}).type_id or else
-					l_type_id = ({INTEGER_32}).type_id or else
-					l_type_id = ({INTEGER_64}).type_id or else
-					l_type_id = ({NATURAL_8}).type_id or else
-					l_type_id = ({NATURAL_16}).type_id or else
-					l_type_id = ({NATURAL_32}).type_id or else
-					l_type_id = ({REAL_32}).type_id or else
-					l_type_id = ({REAL_64}).type_id
+				l_type_id := a_value.generating_type.type_id
+				if		-- Minor: optimisation, most common types are checked first
+					l_type_id = ({INTEGER_32}).type_id
+					or l_type_id = ({BOOLEAN}).type_id -- Converted to INTEGER in binding
+					or l_type_id = ({NATURAL_32}).type_id
+					or l_type_id = ({REAL_32}).type_id
+					or l_type_id = ({INTEGER_8}).type_id
+					or l_type_id = ({INTEGER_16}).type_id
+					or l_type_id = ({INTEGER_64}).type_id
+					or l_type_id = ({NATURAL_8}).type_id
+					or l_type_id = ({NATURAL_16}).type_id
+					or l_type_id = ({REAL_64}).type_id
 				then
 						-- Supported basic type
 					check Result end
+				elseif attached {NATURAL_64_REF} a_value as nat64 then
+							-- Natural 64 will be stored as INTEGER_64
+							-- sqlite does not support unit64 !
+							-- this will be handled via {SQLITE_INTEGER_ARG} built by
+							--  `{SQLITE_BIND_ARG_MARSHALLER}.new_binding_argument'
+						Result := nat64 <= {INTEGER_64}.Max_value.as_natural_64
 				else
-						-- Unsupported type
+						-- Unsupported type, or unsupported value for type
 					Result := False
 				end
 			end
 		end
 
-	is_valid_arguments (a_args: TUPLE): BOOLEAN
+	is_valid_arguments (a_args: ITERABLE [detachable separate ANY]): BOOLEAN
 			-- Determines if an argument tuple is valid.
 			--
 			-- `a_args': A tuple of arguments to validate.
 			-- `Result': True if the supplied tuple contains valid value for arguments; False otherwise.
 		require
 			a_args_attached: attached a_args
-			not_a_args_is_empty: not a_args.is_empty
+			not_a_args_is_empty: across a_args as ic some True end
 		local
-			i_count, i: INTEGER
+			n: INTEGER
+			l_sqlite_limit_variable_number: like SQLITE_LIMIT_VARIABLE_NUMBER
 		do
-			Result := a_args.count <= SQLITE_LIMIT_VARIABLE_NUMBER
-			from
-				i := 1
-				i_count := a_args.count
+			l_sqlite_limit_variable_number := SQLITE_LIMIT_VARIABLE_NUMBER
+			Result := True
+			across
+				a_args as ic
 			until
-				i > i_count or not Result
+				not Result
 			loop
-				Result := is_valid_argument (a_args[i])
-				i := i + 1
+				n := n + 1
+				Result := n <= l_sqlite_limit_variable_number and is_valid_argument (ic.item)
 			end
 		ensure
-			a_args_small_enough: Result implies a_args.count <= SQLITE_LIMIT_VARIABLE_NUMBER
+			a_args_small_enough: Result implies not is_over_sqlite_limit_variable_number (a_args)
 		end
 
 	is_valid_variable_name (a_var: READABLE_STRING_8): BOOLEAN
@@ -113,14 +122,54 @@ feature -- Status report
 			end
 		end
 
-feature {NONE} -- Helpers
+	is_over_sqlite_limit_variable_number (lst: ITERABLE [detachable separate ANY]): BOOLEAN
+			-- Container `lst' exceeds the number of accepted variables?
+		local
+			i,n: INTEGER
+		do
+			n := SQLITE_LIMIT_VARIABLE_NUMBER
+			across
+				lst as ic
+			until
+				i > n
+			loop
+				i := i + 1
+			end
+		end
 
-	internal: INTERNAL
-			-- Shared access to an instance of {INTERNAL}.
-		once
-			create Result
-		ensure
-			result_attached: attached Result
+	iterable_min_count_or_value (lst: ITERABLE [detachable separate ANY]; a_nb: INTEGER): INTEGER
+			-- Minimum between count of `lst' and `a_nb'
+		do
+			if attached {FINITE [detachable separate ANY]} lst as l_finite then
+				Result := l_finite.count.min (a_nb)
+			else
+				across
+					lst as ic
+				until
+					Result >= a_nb
+				loop
+					Result := Result + 1
+				end
+			end
+		end
+
+	iterable_has_count (lst: ITERABLE [detachable separate ANY]; n: INTEGER): BOOLEAN
+			-- Is count of `lst' the same as `nb' ?
+		local
+			i: INTEGER
+		do
+			if attached {FINITE [detachable separate ANY]} lst as l_finite then
+				Result := l_finite.count = n
+			else
+				across
+					lst as ic
+				until
+					i > n
+				loop
+					i := i + 1
+				end
+				Result := i = n
+			end
 		end
 
 feature {NONE} -- Externals
@@ -134,7 +183,7 @@ feature {NONE} -- Externals
 		end
 
 ;note
-	copyright: "Copyright (c) 1984-2010, Eiffel Software"
+	copyright: "Copyright (c) 1984-2013, Eiffel Software"
 	license: "GPL version 2 (see http://www.eiffel.com/licensing/gpl.txt)"
 	licensing_options: "http://www.eiffel.com/licensing"
 	copying: "[

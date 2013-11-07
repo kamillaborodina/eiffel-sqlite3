@@ -1,43 +1,43 @@
 note
 	description: "[
-		An SQLite database source.
+		An integer binding argument value for use with executing a SQLite statement.
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
 	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
 	revision: "$Revision: 93250 $"
 
-deferred class
-	SQLITE_SOURCE
+class
+	SQLITE_INTEGER_ARG
 
-feature -- Access
+inherit
+	SQLITE_BIND_ARG [INTEGER_64]
 
-	locator: IMMUTABLE_STRING_8
-			-- Locator string for the SQLite database source.
-			--| For file source, `locator' is UTF-8 encoded.
-		deferred
-		ensure
-			result_attached: attached Result
-		end
+create
+	make
 
-feature -- Status report
+feature {SQLITE_STATEMENT} -- Basic operations
 
-	exists: BOOLEAN
-			-- Indicates if the source exists, where ever it is located.
-		deferred
-		end
-
-	is_special: BOOLEAN
-			-- Indicates if the database source is special source.
+	bind_to_statement (a_statement: SQLITE_STATEMENT; a_index: INTEGER)
+			-- <Precursor>
 		local
-			l_locator: like locator
+			l_result: INTEGER
 		do
-			l_locator := locator
-			Result := l_locator.item (1) = ':' and then l_locator.item (l_locator.count) = ':'
+			if value <= {INTEGER_32}.max_value.to_integer_64 then
+				l_result := {SQLITE_EXTERNALS}.c_sqlite3_bind_int (a_statement.internal_stmt, a_index, value.as_integer_32)
+			else
+				l_result := {SQLITE_EXTERNALS}.c_sqlite3_bind_int64 (a_statement.internal_stmt, a_index, value)
+			end
+			sqlite_raise_on_failure (l_result)
 		end
+
+feature {NONE} -- Implemention: Internal cache
+
+	internal_value: INTEGER_64
+			-- Cached version of `value'.
 
 ;note
-	copyright: "Copyright (c) 1984-2013, Eiffel Software"
+	copyright: "Copyright (c) 1984-2009, Eiffel Software"
 	license: "GPL version 2 (see http://www.eiffel.com/licensing/gpl.txt)"
 	licensing_options: "http://www.eiffel.com/licensing"
 	copying: "[

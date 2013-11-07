@@ -1,40 +1,45 @@
 note
 	description: "[
-		An integer binding argument value for use with executing a SQLite statement.
+		An blob binding argument value for use with executing a SQLite statement.
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2009-10-08 02:26:41 +0200 (Don, 08 Okt 2009) $"
-	revision: "$Revision: 81049 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
-	SQLITE_INTEGER_ARG
+	SQLITE_BLOB_ARG
 
 inherit
-	SQLITE_BIND_ARG [INTEGER_64]
+	SQLITE_BIND_ARG [MANAGED_POINTER]
+		redefine
+			is_valid_value
+		end
 
 create
 	make
+
+feature -- Status report
+
+	is_valid_value (a_value: like value): BOOLEAN
+			-- <Precursor>
+		do
+			Result := attached a_value
+		ensure then
+			attached_a_value: Result implies attached a_value
+		end
 
 feature {SQLITE_STATEMENT} -- Basic operations
 
 	bind_to_statement (a_statement: SQLITE_STATEMENT; a_index: INTEGER)
 			-- <Precursor>
 		local
-			l_result: INTEGER
+			l_value: like value
 		do
-			if value <= {INTEGER_32}.max_value.to_integer_64 then
-				l_result := {SQLITE_EXTERNALS}.c_sqlite3_bind_int (a_statement.internal_stmt, a_index, value.as_integer_32)
-			else
-				l_result := {SQLITE_EXTERNALS}.c_sqlite3_bind_int64 (a_statement.internal_stmt, a_index, value)
-			end
-			sqlite_raise_on_failure (l_result)
+			l_value := value
+			check l_value_attached: attached l_value end
+			sqlite_raise_on_failure ({SQLITE_EXTERNALS}.c_sqlite3_bind_blob (a_statement.internal_stmt, a_index, l_value.item, l_value.count, default_pointer))
 		end
-
-feature {NONE} -- Implemention: Internal cache
-
-	internal_value: INTEGER_64
-			-- Cached version of `value'.
 
 ;note
 	copyright: "Copyright (c) 1984-2009, Eiffel Software"

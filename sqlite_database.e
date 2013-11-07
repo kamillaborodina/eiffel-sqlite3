@@ -6,8 +6,8 @@ note
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2013-01-26 08:37:47 +0100 (Sam, 26 Jan 2013) $"
-	revision: "$Revision: 90962 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
 	SQLITE_DATABASE
@@ -443,11 +443,7 @@ feature -- Status report: Comparison
 				then
 					if not (l_source.is_temporary and l_other_source.is_temporary) then
 							-- May enter here because one of the databases may be closed.
-						if {PLATFORM}.is_windows then
-							Result := l_source.locator.same_string (l_other_source.locator)
-						else
-							Result := l_source.locator.same_string (l_other_source.locator)
-						end
+						Result := l_source.file_path.is_same_file_as (l_other_source.file_path)
 					else
 							-- Already compared database objects, if they are both temporary then they are not
 							-- the same.
@@ -764,7 +760,11 @@ feature {NONE} -- Basic operations
 			internal_flags := l_flags
 
 				-- Open the database connection.
-			create l_file_name.make (source.locator)
+			if attached {SQLITE_FILE_SOURCE} source as l_file_source then
+				create l_file_name.make (l_file_source.file_path.name)
+			else
+				create l_file_name.make (source.locator)
+			end
 			l_result := sqlite3_open_v2 (sqlite_api, l_file_name.item, $l_db, l_flags, default_pointer)
 			if sqlite_success (l_result) then
 				check not_l_db_is_null: l_db /= default_pointer end
@@ -1111,7 +1111,7 @@ invariant
 	locked_thread_id_is_positive: {PLATFORM}.is_thread_capable implies internal_thread_id > 0
 
 ;note
-	copyright: "Copyright (c) 1984-2011, Eiffel Software"
+	copyright: "Copyright (c) 1984-2013, Eiffel Software"
 	license: "GPL version 2 (see http://www.eiffel.com/licensing/gpl.txt)"
 	licensing_options: "http://www.eiffel.com/licensing"
 	copying: "[

@@ -4,8 +4,8 @@ note
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2011-10-26 19:09:59 +0200 (Mit, 26 Okt 2011) $"
-	revision: "$Revision: 87628 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
 	SQLITE_STATEMENT_ITERATION_CURSOR
@@ -58,7 +58,7 @@ feature {NONE} -- Initalization
 			start
 		ensure
 			statement_statement: statement = a_statement
-			last_result_is_valid: last_result = {SQLITE_RESULT_CODE}.ok
+			last_result_is_valid: last_result = {SQLITE_RESULT_CODE}.ok 
 				or last_result = {SQLITE_RESULT_CODE}.row
 				or last_result = {SQLITE_RESULT_CODE}.done
 		end
@@ -77,7 +77,7 @@ feature {NONE} -- Initalization
 		ensure
 			statement_statement: statement = a_statement
 			bindings_set: bindings = a_bindings
-			last_result_is_valid: last_result = {SQLITE_RESULT_CODE}.ok
+			last_result_is_valid: last_result = {SQLITE_RESULT_CODE}.ok 
 				or last_result = {SQLITE_RESULT_CODE}.row
 				or last_result = {SQLITE_RESULT_CODE}.done
 		end

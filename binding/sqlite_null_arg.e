@@ -4,8 +4,8 @@ note
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2009-10-08 02:26:41 +0200 (Don, 08 Okt 2009) $"
-	revision: "$Revision: 81049 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
 	SQLITE_NULL_ARG

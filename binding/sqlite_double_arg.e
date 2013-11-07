@@ -1,48 +1,33 @@
 note
 	description: "[
-		An string binding argument value for use with executing a SQLite statement.
+		An real binding argument value for use with executing a SQLite statement.
 	]"
 	legal: "See notice at end of class."
 	status: "See notice at end of class."
-	date: "$Date: 2009-10-08 02:26:41 +0200 (Don, 08 Okt 2009) $"
-	revision: "$Revision: 81049 $"
+	date: "$Date: 2013-11-07 21:09:47 +0100 (Don, 07 Nov 2013) $"
+	revision: "$Revision: 93250 $"
 
 class
-	SQLITE_STRING_ARG
+	SQLITE_DOUBLE_ARG
 
 inherit
-	SQLITE_BIND_ARG [READABLE_STRING_8]
-		redefine
-			is_valid_value
-		end
+	SQLITE_BIND_ARG [REAL_64]
 
 create
 	make
-
-feature -- Status report
-
-	is_valid_value (a_value: like value): BOOLEAN
-			-- <Precursor>
-		do
-			Result := attached a_value
-		ensure then
-			attached_a_value: Result implies attached a_value
-		end
 
 feature {SQLITE_STATEMENT} -- Basic operations
 
 	bind_to_statement (a_statement: SQLITE_STATEMENT; a_index: INTEGER)
 			-- <Precursor>
-		local
-			l_cstring: C_STRING
-			l_value: like value
 		do
-			l_value := value
-			check l_value_attached: attached l_value end
-
-			create l_cstring.make (l_value)
-			sqlite_raise_on_failure ({SQLITE_EXTERNALS}.c_sqlite3_bind_text (a_statement.internal_stmt, a_index, l_cstring.item, l_value.count, default_pointer))
+			sqlite_raise_on_failure ({SQLITE_EXTERNALS}.c_sqlite3_bind_double (a_statement.internal_stmt, a_index, value))
 		end
+
+feature {NONE} -- Implemention: Internal cache
+
+	internal_value: REAL_64
+			-- Cached version of `value'.
 
 ;note
 	copyright: "Copyright (c) 1984-2009, Eiffel Software"
